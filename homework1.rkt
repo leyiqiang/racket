@@ -28,3 +28,18 @@
 
 ;;; tests for count-xs
 (equal? 1 (count-xs (cons 'x (cons 'y empty))))
+
+;;; This function takes a list of numbers and returns a boolean about 
+;;; whether they are in ascending order
+(define (ascending? numbers)
+  (cond
+    [(null? numbers) #t]
+    [(null? (rest numbers)) #t]
+    [(>= (first numbers) (first (rest numbers))) false]
+    [else (ascending? (rest numbers))]))
+
+;;; tests for ascending
+(equal? #t (ascending? (cons 1 (cons 3 (cons 5 empty)))))
+(equal? #f (ascending? (cons 3 (cons 3 (cons 5 empty)))))
+(equal? #t (ascending? (cons 1 (cons 3 empty))))
+(equal? #t (ascending? empty))
