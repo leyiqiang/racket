@@ -77,4 +77,10 @@
 
 (equal? empty (zip2 '() '()))
 
+(equal? (list (list 1 'a) (list 'a 'b) (list 3 'c))
+        (zip2 (list 1 'a 3) (list 'a 'b 'c)))
+
+(equal? (list (list 1 'a))
+        (zip2 (list 1) (list 'a)))
+
 (define minutes-spent 120)
