@@ -5,8 +5,7 @@
 
 ;;; This function takes three integers and returns a boolean about
 ;;; whether they are all at most within an interval of 2 of each other
-;;; Int Int Int -> Boolean
-;;; x, y, z must be integers
+;;; near?: Int Int Int -> Boolean
 (define (near? x y z)
   ;; check if any of the two numbers are within an interval of 2
   (and (<= (abs (- x y)) 2)
@@ -21,8 +20,7 @@
 
 ;;; This function takes a list of symbols and returns an integer
 ;;; that indicates a list of 'x's in the list
-;;; (Listof symbol) -> Int
-;;; symbols must be a list of symbols
+;;; count-xs: Listof symbol -> Int
 (define (count-xs symbols)
   ;; if the list is empty, return 0
   (if (null? symbols) 0
@@ -40,8 +38,7 @@
 
 ;;; This function takes a list of numbers and returns a boolean about 
 ;;; whether they are in ascending order
-;;; List of number -> Boolean
-;;; numbers must be a list of numbers
+;;; ascending?: List of number -> Boolean
 (define (ascending? numbers)
   (cond
     ;; if the list is empty or the second item of the list is empty,
@@ -62,7 +59,7 @@
 ;;; This function takes two lists of equal length,
 ;;; and returns a list that contains two-element lists from the first and
 ;;; the seconds lists respectively
-;;; Listof ?, Listof ? -> List of (List ? ?)
+;;; zip2: Listof ?, Listof ? -> List of (List ? ?)
 ;;; list-a and list-b must be lists and have the same length
 (define (zip2 list-a list-b)
    (if (null? list-a) empty
