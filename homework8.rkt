@@ -1,6 +1,6 @@
 ;; ** The BRANG interpreter, using environments
 
-#lang pl 06
+#lang pl 08
 #|
 The grammar:
   <BRANG> ::= <num>
@@ -12,6 +12,7 @@ The grammar:
             | <id>
             | { fun { <id> <id> ... } <BRANG> }
             | { call <BRANG> <BRANG> ... }
+            | { rec { <id> <BRANG> } <BRANG> }
 
 Evaluation rules:
   eval(N,env)                = N
@@ -26,6 +27,7 @@ Evaluation rules:
            = eval(Ef,extend(x,eval(E2,env1),env2))
                              if eval(E1,env1) = <{fun {x} Ef}, env2>
            = error!          otherwise
+  eval({rec {x E1} E2}, env) = eval({with {id {call Y {fun {id} E1}}} E2}, env)
 |#
 
 (define-type BRANG
@@ -37,7 +39,8 @@ Evaluation rules:
   [Id   Symbol]
   [With Symbol BRANG BRANG]
   [Fun  (Listof Symbol) BRANG]
-  [Call BRANG (Listof BRANG)])
+  [Call BRANG (Listof BRANG)]
+  [WRec Symbol BRANG BRANG])
 
 (define-type CORE
   [CNum  Number]
@@ -74,6 +77,14 @@ Evaluation rules:
        [(list 'call fun arg args ...)
         (Call (parse-sexpr fun) (map parse-sexpr (cons arg args)))]
        [else (error 'parse-sexpr "bad `call syntax in ~s" sexpr)])]
+    [(cons 'rec more)
+     (match sexpr
+       [(list 'rec (list (symbol: name) named) body)
+        (let ([parse-named (parse-sexpr named)])
+          (cases parse-named
+            [(Fun ids bound-body) (WRec name (parse-sexpr named) (parse-sexpr body))]
+            [else (error 'parse-sexpr "non-fun form in `rec'")]))]
+       [else (error 'parse-sexpr "bad `rec syntax in ~s" sexpr)])]
     [else (error 'parse-sexpr "bad syntax in ~s" sexpr)]))
 
 (: parse : String -> BRANG)
@@ -140,6 +151,15 @@ Evaluation rules:
          [else (error 'eval "`call' expects a function, got: ~s"
                             fval)]))]))
 
+;; The make-recursive function
+;; (define (make-recursive f)
+;;  ((lambda (x) (x x))
+;;   (lambda (x) (f (lambda (n) ((x x) n))))))
+(define Y-combinator (parse "{fun {f}
+                               {call {fun {x} {call x x}}
+                                     {fun {x}
+                                       {call f {fun {n}
+                                         {call {call x x} n}}}}}"))
 (: preprocess : BRANG DE-ENV -> CORE)
 ;; translates a given BRANG value to the corresponding CORE value
 (define (preprocess expr de-env)
@@ -165,7 +185,10 @@ Evaluation rules:
          (preprocess
           (Call (Call fun-expr (list (first arg-exprs)))
                 (rest arg-exprs))
-          de-env))]))
+          de-env))]
+    [(WRec id named-expr bound-body)
+     (sub (With id (Call Y-combinator (list (Fun (list id) named-expr)))
+                bound-body))]))
     
    
 (: run : String -> Number)
